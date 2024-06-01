@@ -1,4 +1,4 @@
-'use server';
+'use client';
 import { z } from 'Zod';
 import { sql } from '@vercel/postgres';
 import { revalidatePath } from 'next/cache';
