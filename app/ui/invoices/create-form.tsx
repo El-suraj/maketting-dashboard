@@ -1,3 +1,4 @@
+"use client"; // This is a client
 import { CustomerField } from '@/app/lib/definitions';
 import Link from 'next/link';
 import {

@@ -1,16 +1,14 @@
-'use client';
-import { z } from 'Zod';
+'use server';
+import { z } from 'zod';
 import { sql } from '@vercel/postgres';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { signIn } from '@/auth';
 import { AuthError } from 'next-auth';
 
-export async function authenticate(
-  prevState: string | undefined,
-  formData: FormData,
-) {
+export async function authenticate(prevState: string | undefined, formData: FormData) {
   try {
+    // Ensure this code runs in a client-side context
     await signIn('credentials', formData);
   } catch (error) {
     if (error instanceof AuthError) {
@@ -28,11 +26,11 @@ export async function authenticate(
 const FormSchema = z.object({
   id: z.string(),
   customerId: z.string({
-    invalid_type_error: 'Please select a customer .',
+    invalid_type_error: 'Please select a customer.',
   }),
-  amount: z.coerce.number().gt(0, { message: 'Please enter an amount than $0 . ' }),
+  amount: z.coerce.number().gt(0, { message: 'Please enter an amount greater than $0.' }),
   status: z.enum(['pending', 'paid'], {
-    invalid_type_error: 'Please select an invoice status. ',
+    invalid_type_error: 'Please select an invoice status.',
   }),
   date: z.string(),
 });
@@ -48,6 +46,7 @@ export type State = {
   };
   message?: string | null;
 };
+
 export async function createInvoice(prevState: State, formData: FormData) {
   const validatedFields = CreateInvoice.safeParse({
     customerId: formData.get('customerId'),
@@ -78,7 +77,8 @@ export async function createInvoice(prevState: State, formData: FormData) {
   revalidatePath('/dashboard/invoices');
   redirect('/dashboard/invoices');
 }
-export async function updateInvoice(id: string,prevState:State, formData: FormData) {
+
+export async function updateInvoice(id: string, prevState: State, formData: FormData) {
   const validatedFields = UpdateInvoice.safeParse({
     customerId: formData.get('customerId'),
     amount: formData.get('amount'),
@@ -87,7 +87,7 @@ export async function updateInvoice(id: string,prevState:State, formData: FormDa
   if (!validatedFields.success) {
     return {
       errors: validatedFields.error.flatten().fieldErrors,
-      message: 'Missing Fields. Failed to update invoice',
+      message: 'Missing Fields. Failed to update invoice.',
     };
   }
   const { customerId, amount, status } = validatedFields.data;
@@ -100,14 +100,14 @@ export async function updateInvoice(id: string,prevState:State, formData: FormDa
     `;
   } catch (error) {
     return {
-      message: 'Database Error : Failed to Update Invoice,'
+      message: 'Database Error: Failed to Update Invoice.',
     };
-
   }
 
   revalidatePath('/dashboard/invoices');
   redirect('/dashboard/invoices');
 }
+
 export async function deleteInvoice(id: string) {
   try {
     await sql`DELETE FROM invoices WHERE id = ${id}`;
@@ -115,8 +115,7 @@ export async function deleteInvoice(id: string) {
     return { message: 'Deleted Invoice.' };
   } catch (error) {
     return {
-      message: 'Database Error : Failed to Delete invoice'
-    }
+      message: 'Database Error: Failed to Delete invoice.',
+    };
   }
 }
-
